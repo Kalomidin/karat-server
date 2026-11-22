@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 
 	"karat-server/common"
 )
@@ -24,6 +25,7 @@ type Item struct {
 	CreatedOn   time.Time  `gorm:"type:timestamptz;not null"`
 	SoldOn      *time.Time `gorm:"type:timestamptz"`
 	SoldAmount  *int64
+	DeletedAt   gorm.DeletedAt `gorm:"index"`
 	common.CreatedUpdated
 }
 

@@ -92,7 +92,7 @@ func tableName(db *gorm.DB, model interface{}) (string, error) {
 func (r *repository) List(ctx context.Context, userID uuid.UUID) ([]Item, error) {
 	var items []Item
 	err := r.WithContext(ctx).
-		Where("user_id = ?", userID).
+		Where("user_id = ? AND deleted_at IS NULL", userID).
 		Order("created_at DESC, id DESC").
 		Find(&items).Error
 	return items, err
@@ -111,11 +111,26 @@ func (r *repository) GetForUpdate(ctx context.Context, userID, id uuid.UUID) (*I
 }
 
 func (r *repository) Save(ctx context.Context, item *Item) error {
-	return r.WithContext(ctx).Select("*").Save(item).Error
+	res := r.WithContext(ctx).
+		Model(&Item{}).
+		Where("id = ? AND user_id = ? AND deleted_at IS NULL", item.ID, item.UserID).
+		Select("*").
+		Omit("DeletedAt").
+		Updates(item)
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return common.ErrMissing
+	}
+	return nil
 }
 
+// Delete marks the piece deleted. The row stays, and reads leave it out.
 func (r *repository) Delete(ctx context.Context, userID, id uuid.UUID) error {
-	res := r.WithContext(ctx).Where("id = ? AND user_id = ?", id, userID).Delete(&Item{})
+	res := r.WithContext(ctx).
+		Where("id = ? AND user_id = ? AND deleted_at IS NULL", id, userID).
+		Delete(&Item{})
 	if res.Error != nil {
 		return res.Error
 	}
@@ -132,7 +147,7 @@ func (r *repository) WithinTransaction(ctx context.Context, fn func(Repository) 
 }
 
 func (r *repository) one(ctx context.Context, userID, id uuid.UUID, lock bool) (*Item, error) {
-	query := r.WithContext(ctx).Where("id = ? AND user_id = ?", id, userID)
+	query := r.WithContext(ctx).Where("id = ? AND user_id = ? AND deleted_at IS NULL", id, userID)
 	if lock {
 		query = query.Clauses(clause.Locking{Strength: "UPDATE"})
 	}

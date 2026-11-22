@@ -20,7 +20,7 @@ func (h *HttpHandler) Create(ctx *gin.Context, req *http.Request) (interface{}, 
 	return h.handler.Create(req.Context(), req, body)
 }
 
-func (h *handler) Create(ctx context.Context, req *http.Request, body itemRequest) (*manager.Item, error) {
+func (h *handler) Create(ctx context.Context, req *http.Request, body itemRequest) ([]manager.Item, error) {
 	userID, err := userID(req)
 	if err != nil {
 		return nil, err

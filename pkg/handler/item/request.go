@@ -60,5 +60,9 @@ func (body itemRequest) input() (manager.Input, error) {
 		in.CreatedOn = created.UTC()
 	}
 	in.ImageKey = body.ImageKey
+	in.Quantity = 1
+	if body.Quantity != nil {
+		in.Quantity = *body.Quantity
+	}
 	return in, nil
 }

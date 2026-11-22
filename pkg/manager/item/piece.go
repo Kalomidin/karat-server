@@ -14,6 +14,15 @@ import (
 
 const maxAmount = 1_000_000_000
 
+const maxQuantity = 200
+
+func validQuantity(n int) error {
+	if n < 1 || n > maxQuantity {
+		return common.ErrInvalidQuantity
+	}
+	return nil
+}
+
 func normalize(in Input) (Input, error) {
 	in.Name = strings.TrimSpace(in.Name)
 	in.Kind = strings.TrimSpace(in.Kind)

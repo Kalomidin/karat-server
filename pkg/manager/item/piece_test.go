@@ -35,6 +35,21 @@ func storedPiece() *repository.Item {
 	}
 }
 
+func TestQuantityLimit(t *testing.T) {
+	if err := validQuantity(1); err != nil {
+		t.Fatal(err)
+	}
+	if err := validQuantity(maxQuantity); err != nil {
+		t.Fatal(err)
+	}
+	if err := validQuantity(0); err != common.ErrInvalidQuantity {
+		t.Fatalf("zero: %v", err)
+	}
+	if err := validQuantity(maxQuantity + 1); err != common.ErrInvalidQuantity {
+		t.Fatalf("over: %v", err)
+	}
+}
+
 func TestNormalizeTrimsWeight(t *testing.T) {
 	got, err := normalize(sample())
 	if err != nil {

@@ -26,7 +26,7 @@ type handler struct {
 
 type ItemHandler interface {
 	List(ctx context.Context, req *http.Request) ([]manager.Item, error)
-	Create(ctx context.Context, req *http.Request, body itemRequest) (*manager.Item, error)
+	Create(ctx context.Context, req *http.Request, body itemRequest) ([]manager.Item, error)
 	Get(ctx context.Context, req *http.Request, id uuid.UUID) (*manager.Item, error)
 	Update(ctx context.Context, req *http.Request, id uuid.UUID, body itemRequest) (*manager.Item, error)
 	Delete(ctx context.Context, req *http.Request, id uuid.UUID) error

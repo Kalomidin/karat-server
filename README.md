@@ -51,10 +51,10 @@ curl -H 'Content-Type: application/json' \
 ## Pieces
 
 - `GET /item`
-- `POST /item`
+- `POST /item` with an optional `quantity` from 1 to 200. Omitted means 1. The response is a list of the created pieces, each with its own id and the same weight, cost, and photo. More than 200 answers `invalid_quantity`.
 - `GET /item/{id}`
 - `PUT /item/{id}`
-- `DELETE /item/{id}`
+- `DELETE /item/{id}` marks the piece deleted. The row stays. List, get, update, sale, and return leave it out.
 - `POST /item/upload-url` with `{ "contentType": "image/jpeg" }` returns a 15-minute R2 PUT URL
 - `GET /currency`
 - `POST /item/{id}/sale` with `soldOn` (`YYYY-MM-DD`) and `soldAmount`

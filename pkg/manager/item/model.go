@@ -17,6 +17,7 @@ type Input struct {
 	Notes       string
 	ImageKey    *string
 	CreatedOn   time.Time
+	Quantity    int
 }
 
 type Item struct {

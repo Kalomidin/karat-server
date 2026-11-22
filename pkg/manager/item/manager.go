@@ -13,7 +13,7 @@ import (
 
 type ItemManager interface {
 	List(ctx context.Context, userID uuid.UUID) ([]Item, error)
-	Create(ctx context.Context, userID uuid.UUID, in Input) (*Item, error)
+	Create(ctx context.Context, userID uuid.UUID, in Input) ([]Item, error)
 	Get(ctx context.Context, userID, id uuid.UUID) (*Item, error)
 	Update(ctx context.Context, userID, id uuid.UUID, in Input) (*Item, error)
 	Delete(ctx context.Context, userID, id uuid.UUID) error
@@ -55,7 +55,10 @@ func (m *itemManager) List(ctx context.Context, userID uuid.UUID) ([]Item, error
 	return items, nil
 }
 
-func (m *itemManager) Create(ctx context.Context, userID uuid.UUID, in Input) (*Item, error) {
+func (m *itemManager) Create(ctx context.Context, userID uuid.UUID, in Input) ([]Item, error) {
+	if err := validQuantity(in.Quantity); err != nil {
+		return nil, err
+	}
 	normalized, err := normalize(in)
 	if err != nil {
 		return nil, err
@@ -66,25 +69,46 @@ func (m *itemManager) Create(ctx context.Context, userID uuid.UUID, in Input) (*
 	if in.CreatedOn.IsZero() || in.CreatedOn.After(m.now().UTC()) {
 		return nil, common.ErrInvalidDate
 	}
-	item := &repository.Item{
-		UserID:      userID,
-		Name:        normalized.Name,
-		Kind:        normalized.Kind,
-		Metal:       normalized.Metal,
-		Purity:      normalized.Purity,
-		WeightGrams: normalized.WeightGrams,
-		CurrencyID:  normalized.CurrencyID,
-		Cost:        int64(normalized.Cost),
-		Notes:       normalized.Notes,
-		CreatedOn:   in.CreatedOn.UTC(),
-	}
-	if normalized.ImageKey != nil {
-		item.ImageKey = strings.TrimSpace(*normalized.ImageKey)
-	}
-	if err := m.repository.Create(ctx, item); err != nil {
+	var stored []repository.Item
+	err = m.repository.WithinTransaction(ctx, func(repo repository.Repository) error {
+		stored = make([]repository.Item, 0, in.Quantity)
+		for range in.Quantity {
+			item := repository.Item{
+				UserID:      userID,
+				Name:        normalized.Name,
+				Kind:        normalized.Kind,
+				Metal:       normalized.Metal,
+				Purity:      normalized.Purity,
+				WeightGrams: normalized.WeightGrams,
+				CurrencyID:  normalized.CurrencyID,
+				Cost:        int64(normalized.Cost),
+				Notes:       normalized.Notes,
+				CreatedOn:   in.CreatedOn.UTC(),
+			}
+			if normalized.ImageKey != nil {
+				item.ImageKey = strings.TrimSpace(*normalized.ImageKey)
+			}
+			if err := repo.Create(ctx, &item); err != nil {
+				return err
+			}
+			stored = append(stored, item)
+		}
+		return nil
+	})
+	if err != nil {
 		return nil, err
 	}
-	return m.present(ctx, item)
+	url, err := m.readURL(ctx, stored[0].ImageKey)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]Item, 0, len(stored))
+	for i := range stored {
+		item := toItem(&stored[i])
+		item.ImageURL = url
+		out = append(out, *item)
+	}
+	return out, nil
 }
 
 func (m *itemManager) Get(ctx context.Context, userID, id uuid.UUID) (*Item, error) {

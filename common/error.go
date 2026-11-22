@@ -26,6 +26,7 @@ var (
 	ErrInvalidPurity    = NewError(400, "invalid_purity")
 	ErrInvalidWeight    = NewError(400, "invalid_weight")
 	ErrInvalidCost      = NewError(400, "invalid_cost")
+	ErrInvalidQuantity  = NewError(400, "invalid_quantity")
 	ErrInvalidCurrency  = NewError(400, "invalid_currency")
 	ErrInvalidNotes     = NewError(400, "invalid_notes")
 	ErrInvalidDate      = NewError(400, "invalid_date")
