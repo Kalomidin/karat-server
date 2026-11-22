@@ -60,7 +60,7 @@ curl -H 'Content-Type: application/json' \
 - `POST /item/{id}/sale` with `soldOn` (`YYYY-MM-DD`) and `soldAmount`
 - `POST /item/{id}/return`
 
-`kind` is `ring`, `necklace`, `bracelet`, `earrings`, `pendant`, `brooch`, or `other`. `metal` is `gold`, `silver`, `platinum`, or `mixed`. `GET /currency` returns the currency rows (`id`, `code`, `name`) for dollar, ruble, and somoni. A piece stores that row’s `currencyId`. Prices are whole units of that currency. A sale needs both a day and a price, and the day cannot be after today in `SHOP_TIMEZONE`.
+`kind` is `ring`, `necklace`, `bracelet`, `earrings`, `pendant`, `brooch`, or `other`. `metal` and `purity` are text the phone chooses, such as `gold` and `750`. `GET /currency` returns the currency rows (`id`, `code`, `name`) for dollar, ruble, and somoni. A piece stores that row’s `currencyId`, and `currency_id` is a foreign key to `currency`. Prices are whole units of that currency. `createdOn` and `soldOn` are UTC timestamps (`2026-11-21T16:00:00Z`). A sale needs both a time and a price, and the time cannot be after the current UTC time. The phone converts its local time to UTC before sending, and shows the UTC time in the device's own zone.
 
 A piece can carry `imageKey`. Photos are stored in the `karat` bucket under `items/<google id>/`. The key has to be one this account received from `POST /item/upload-url`. Item responses add `imageUrl`, a one-hour read-only presigned link. The bucket stays private. Leave the R2 variables empty and the API still starts; the upload route then answers `image_unavailable`.
 

@@ -1,6 +1,10 @@
 package item_manager
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Input struct {
 	Name        string
@@ -12,6 +16,7 @@ type Input struct {
 	Cost        int
 	Notes       string
 	ImageKey    *string
+	CreatedOn   time.Time
 }
 
 type Item struct {

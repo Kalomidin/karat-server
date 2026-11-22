@@ -9,6 +9,7 @@ type itemRequest struct {
 	CurrencyID  *string  `json:"currencyId"`
 	Cost        *int     `json:"cost"`
 	Notes       *string  `json:"notes"`
+	CreatedOn   *string  `json:"createdOn"`
 	ImageKey    *string  `json:"imageKey"`
 }
 

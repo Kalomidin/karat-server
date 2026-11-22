@@ -2,6 +2,7 @@ package item_handler
 
 import (
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -50,6 +51,13 @@ func (body itemRequest) input() (manager.Input, error) {
 	}
 	if body.Notes != nil {
 		in.Notes = *body.Notes
+	}
+	if body.CreatedOn != nil {
+		created, err := time.Parse(time.RFC3339, strings.TrimSpace(*body.CreatedOn))
+		if err != nil {
+			return manager.Input{}, common.ErrInvalidDate
+		}
+		in.CreatedOn = created.UTC()
 	}
 	in.ImageKey = body.ImageKey
 	return in, nil

@@ -24,7 +24,7 @@ import (
 
 var schemaName = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
 
-func InitHandlers(router *gin.Engine, db *gorm.DB, middleware common.Middleware, schema string, tokens provider.Client, locationName string, images storage.Store) error {
+func InitHandlers(router *gin.Engine, db *gorm.DB, middleware common.Middleware, schema string, tokens provider.Client, images storage.Store) error {
 	if !schemaName.MatchString(schema) {
 		return fmt.Errorf("schema name %q is not allowed", schema)
 	}
@@ -53,11 +53,7 @@ func InitHandlers(router *gin.Engine, db *gorm.DB, middleware common.Middleware,
 	userHandler := user_handler.NewHttpHandler(user_handler.NewHandler(user_manager.NewUserManager(users)), middleware)
 	userHandler.Init(nil, router)
 
-	location, err := loadLocation(locationName)
-	if err != nil {
-		return err
-	}
-	itemHandler := item_handler.NewHttpHandler(item_handler.NewHandler(item_manager.NewItemManager(items, currencies, location, images.PresignRead)), middleware, images)
+	itemHandler := item_handler.NewHttpHandler(item_handler.NewHandler(item_manager.NewItemManager(items, currencies, images.PresignRead)), middleware, images)
 	itemHandler.Init(nil, router)
 	return nil
 }

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -28,17 +29,55 @@ func (r *repository) Migrate() error {
 	if err != nil {
 		return err
 	}
+	if err := utcTimestamps(r.DB, itemTable); err != nil {
+		return err
+	}
+	if err := dropMetalCatalog(r.DB, itemTable); err != nil {
+		return err
+	}
 	currencyTable, err := tableName(r.DB, &currency_repo.Currency{})
 	if err != nil {
 		return err
 	}
-	return r.Exec(`
+	return addForeignKey(r.DB, itemTable, "item_currency_id_fkey", "currency_id", currencyTable)
+}
+
+func dropMetalCatalog(db *gorm.DB, itemTable string) error {
+	schema, _, ok := strings.Cut(itemTable, ".")
+	if !ok {
+		schema = "public"
+	}
+	if err := db.Exec(`ALTER TABLE ` + itemTable + ` DROP COLUMN IF EXISTS metal_id`).Error; err != nil {
+		return err
+	}
+	return db.Exec(`DROP TABLE IF EXISTS ` + schema + `.metal`).Error
+}
+
+func addForeignKey(db *gorm.DB, table, name, column, refTable string) error {
+	return db.Exec(`
 DO $$ BEGIN
-  ALTER TABLE ` + itemTable + `
-    ADD CONSTRAINT item_currency_id_fkey
-    FOREIGN KEY (currency_id) REFERENCES ` + currencyTable + ` (id);
+  ALTER TABLE ` + table + `
+    ADD CONSTRAINT ` + name + `
+    FOREIGN KEY (` + column + `) REFERENCES ` + refTable + ` (id);
 EXCEPTION
   WHEN duplicate_object THEN NULL;
+END $$;`).Error
+}
+
+func utcTimestamps(db *gorm.DB, table string) error {
+	return db.Exec(`
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = split_part('` + table + `', '.', 1)
+      AND table_name = split_part('` + table + `', '.', 2)
+      AND column_name = 'created_on'
+      AND data_type = 'date'
+  ) THEN
+    ALTER TABLE ` + table + `
+      ALTER COLUMN created_on TYPE timestamptz USING created_on::timestamp AT TIME ZONE 'UTC',
+      ALTER COLUMN sold_on TYPE timestamptz USING sold_on::timestamp AT TIME ZONE 'UTC';
+  END IF;
 END $$;`).Error
 }
 

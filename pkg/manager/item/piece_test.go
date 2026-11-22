@@ -14,7 +14,7 @@ func sample() Input {
 		Name:        " Oval sapphire ring ",
 		Kind:        "ring",
 		Metal:       "gold",
-		Purity:      "18K",
+		Purity:      "750",
 		WeightGrams: 3.2,
 		CurrencyID:  currency.DollarID,
 		Cost:        50,
@@ -22,12 +22,12 @@ func sample() Input {
 }
 
 func storedPiece() *repository.Item {
-	created, _ := parseDay("2026-11-21")
+	created, _ := parseTimestamp("2026-11-21T00:00:00Z")
 	return &repository.Item{
 		Name:        "Oval sapphire ring",
 		Kind:        "ring",
 		Metal:       "gold",
-		Purity:      "18K",
+		Purity:      "750",
 		WeightGrams: 3.2,
 		CurrencyID:  currency.DollarID,
 		Cost:        50,
@@ -56,13 +56,14 @@ func TestNormalizeTrimsWeight(t *testing.T) {
 
 func TestSaleRules(t *testing.T) {
 	item := storedPiece()
-	if err := applySale(item, "2026-11-22", 150, "2026-11-21"); err != common.ErrFutureSale {
+	now := time.Date(2026, 11, 21, 12, 0, 0, 0, time.UTC)
+	if err := applySale(item, "2026-11-22T00:00:00Z", 150, now); err != common.ErrFutureSale {
 		t.Fatalf("future: %v", err)
 	}
-	if err := applySale(item, "2026-11-21", 150, "2026-11-21"); err != nil {
+	if err := applySale(item, "2026-11-21T08:00:00Z", 150, now); err != nil {
 		t.Fatal(err)
 	}
-	if err := applySale(item, "2026-11-21", 160, "2026-11-21"); err != common.ErrAlreadySold {
+	if err := applySale(item, "2026-11-21T08:00:00Z", 160, now); err != common.ErrAlreadySold {
 		t.Fatalf("second: %v", err)
 	}
 	if err := applyEdit(item, sample()); err != common.ErrSoldLocked {
@@ -91,7 +92,7 @@ func TestSaleRules(t *testing.T) {
 	if kept.ImageKey != next {
 		t.Fatalf("image key %q", kept.ImageKey)
 	}
-	if dayString(time.Date(2026, 11, 21, 0, 0, 0, 0, time.UTC)) != "2026-11-21" {
-		t.Fatal("date format")
+	if timestampString(time.Date(2026, 11, 21, 8, 0, 0, 0, time.FixedZone("shop", 5*60*60))) != "2026-11-21T03:00:00Z" {
+		t.Fatal("utc format")
 	}
 }

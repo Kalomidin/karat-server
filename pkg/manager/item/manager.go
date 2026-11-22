@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"karat-server/common"
 	"karat-server/pkg/manager/item/repository"
 )
 
@@ -28,18 +29,14 @@ type itemManager struct {
 	repository repository.Repository
 	currencies Currencies
 	now        func() time.Time
-	location   *time.Location
 	readURL    func(context.Context, string) (string, error)
 }
 
-func NewItemManager(repository repository.Repository, currencies Currencies, location *time.Location, readURL func(context.Context, string) (string, error)) ItemManager {
-	if location == nil {
-		location = time.UTC
-	}
+func NewItemManager(repository repository.Repository, currencies Currencies, readURL func(context.Context, string) (string, error)) ItemManager {
 	if readURL == nil {
 		readURL = func(context.Context, string) (string, error) { return "", nil }
 	}
-	return &itemManager{repository: repository, currencies: currencies, now: time.Now, location: location, readURL: readURL}
+	return &itemManager{repository: repository, currencies: currencies, now: time.Now, readURL: readURL}
 }
 
 func (m *itemManager) List(ctx context.Context, userID uuid.UUID) ([]Item, error) {
@@ -66,9 +63,8 @@ func (m *itemManager) Create(ctx context.Context, userID uuid.UUID, in Input) (*
 	if err := m.currencies.Require(ctx, normalized.CurrencyID); err != nil {
 		return nil, err
 	}
-	createdOn, err := parseDay(m.today())
-	if err != nil {
-		return nil, err
+	if in.CreatedOn.IsZero() || in.CreatedOn.After(m.now().UTC()) {
+		return nil, common.ErrInvalidDate
 	}
 	item := &repository.Item{
 		UserID:      userID,
@@ -80,7 +76,7 @@ func (m *itemManager) Create(ctx context.Context, userID uuid.UUID, in Input) (*
 		CurrencyID:  normalized.CurrencyID,
 		Cost:        int64(normalized.Cost),
 		Notes:       normalized.Notes,
-		CreatedOn:   createdOn,
+		CreatedOn:   in.CreatedOn.UTC(),
 	}
 	if normalized.ImageKey != nil {
 		item.ImageKey = strings.TrimSpace(*normalized.ImageKey)
@@ -118,7 +114,7 @@ func (m *itemManager) Delete(ctx context.Context, userID, id uuid.UUID) error {
 
 func (m *itemManager) Sell(ctx context.Context, userID, id uuid.UUID, sale Sale) (*Item, error) {
 	return m.change(ctx, userID, id, func(item *repository.Item) error {
-		return applySale(item, sale.SoldOn, sale.SoldAmount, m.today())
+		return applySale(item, sale.SoldOn, sale.SoldAmount, m.now())
 	})
 }
 
@@ -158,9 +154,4 @@ func (m *itemManager) present(ctx context.Context, item *repository.Item) (*Item
 	}
 	out.ImageURL = url
 	return out, nil
-}
-
-func (m *itemManager) today() string {
-	current := m.now().In(m.location)
-	return dayString(current)
 }

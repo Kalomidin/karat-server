@@ -29,7 +29,6 @@ services:
       PG_SSL_MODE: disable
       PG_SCHEMA: karat
       GOOGLE_CLIENT_IDS: ${GOOGLE_CLIENT_IDS:-942973487076-75esdqolvo0ropi4hjq23rcr8mvdnu3b.apps.googleusercontent.com,942973487076-8f5enjqlaclf3qs4526o75qbg4hhj4nf.apps.googleusercontent.com}
-      SHOP_TIMEZONE: ${SHOP_TIMEZONE:-UTC}
       DEV_LOGIN: ${DEV_LOGIN:-false}
       R2_BUCKET: ${R2_BUCKET:-}
       R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}

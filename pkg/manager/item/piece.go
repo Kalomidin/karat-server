@@ -1,7 +1,6 @@
 package item_manager
 
 import (
-	"fmt"
 	"math"
 	"strings"
 	"time"
@@ -26,7 +25,7 @@ func normalize(in Input) (Input, error) {
 		return Input{}, common.ErrInvalidName
 	case !knownKind(in.Kind):
 		return Input{}, common.ErrInvalidKind
-	case !knownMetal(in.Metal):
+	case in.Metal == "" || utf8.RuneCountInString(in.Metal) > 40:
 		return Input{}, common.ErrInvalidMetal
 	case in.Purity == "" || utf8.RuneCountInString(in.Purity) > 40:
 		return Input{}, common.ErrInvalidPurity
@@ -65,15 +64,15 @@ func applyEdit(item *repository.Item, in Input) error {
 	return nil
 }
 
-func applySale(item *repository.Item, soldOn string, amount int, today string) error {
+func applySale(item *repository.Item, soldOn string, amount int, now time.Time) error {
 	if hasSale(item) {
 		return common.ErrAlreadySold
 	}
-	sold, err := parseDay(soldOn)
-	if err != nil || !validDay(today) {
+	sold, err := parseTimestamp(soldOn)
+	if err != nil {
 		return common.ErrInvalidDate
 	}
-	if soldOn > today {
+	if sold.After(now.UTC()) {
 		return common.ErrFutureSale
 	}
 	if amount < 0 || amount > maxAmount {
@@ -98,35 +97,21 @@ func hasSale(item *repository.Item) bool {
 	return item.SoldOn != nil || item.SoldAmount != nil
 }
 
-func validDay(value string) bool {
-	parsed, err := time.Parse("2006-01-02", value)
-	return err == nil && parsed.Format("2006-01-02") == value
-}
-
-func parseDay(value string) (time.Time, error) {
-	if !validDay(value) {
+func parseTimestamp(value string) (time.Time, error) {
+	parsed, err := time.Parse(time.RFC3339, strings.TrimSpace(value))
+	if err != nil {
 		return time.Time{}, common.ErrInvalidDate
 	}
-	return time.Parse("2006-01-02", value)
+	return parsed.UTC(), nil
 }
 
-func dayString(value time.Time) string {
-	year, month, day := value.Date()
-	return fmt.Sprintf("%04d-%02d-%02d", year, int(month), day)
+func timestampString(value time.Time) string {
+	return value.UTC().Format(time.RFC3339)
 }
 
 func knownKind(kind string) bool {
 	switch kind {
 	case "ring", "necklace", "bracelet", "earrings", "pendant", "brooch", "other":
-		return true
-	default:
-		return false
-	}
-}
-
-func knownMetal(metal string) bool {
-	switch metal {
-	case "gold", "silver", "platinum", "mixed":
 		return true
 	default:
 		return false
@@ -153,10 +138,10 @@ func toItem(item *repository.Item) *Item {
 		Cost:        int(item.Cost),
 		Notes:       item.Notes,
 		ImageKey:    item.ImageKey,
-		CreatedOn:   dayString(item.CreatedOn),
+		CreatedOn:   timestampString(item.CreatedOn),
 	}
 	if item.SoldOn != nil {
-		soldOn := dayString(*item.SoldOn)
+		soldOn := timestampString(*item.SoldOn)
 		out.SoldOn = &soldOn
 	}
 	if item.SoldAmount != nil {

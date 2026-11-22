@@ -57,7 +57,7 @@ func run(cfg Config) error {
 	router.GET("/healthz", health(db))
 	router.Use(auth.AuthMiddleware())
 	images := storage.New(cfg.Config.R2)
-	if err := handler.InitHandlers(router, db, auth, cfg.Config.DB.GetSchema(), tokens, cfg.Config.Shop.Timezone, images); err != nil {
+	if err := handler.InitHandlers(router, db, auth, cfg.Config.DB.GetSchema(), tokens, images); err != nil {
 		return err
 	}
 
