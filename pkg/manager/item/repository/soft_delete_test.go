@@ -35,6 +35,7 @@ func TestDeletedPieceStaysOutOfReads(t *testing.T) {
 		cost integer NOT NULL,
 		notes text NOT NULL DEFAULT '',
 		image_key text NOT NULL DEFAULT '',
+		group_id text,
 		created_on datetime NOT NULL,
 		sold_on datetime,
 		sold_amount integer,

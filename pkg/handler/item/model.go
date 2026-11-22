@@ -12,6 +12,7 @@ type itemRequest struct {
 	CreatedOn   *string  `json:"createdOn"`
 	ImageKey    *string  `json:"imageKey"`
 	Quantity    *int     `json:"quantity"`
+	GroupID     *string  `json:"groupId"`
 }
 
 type uploadRequest struct {

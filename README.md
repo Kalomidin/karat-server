@@ -51,7 +51,7 @@ curl -H 'Content-Type: application/json' \
 ## Pieces
 
 - `GET /item`
-- `POST /item` with an optional `quantity` from 1 to 200. Omitted means 1. The response is a list of the created pieces, each with its own id and the same weight, cost, and photo. More than 200 answers `invalid_quantity`.
+- `POST /item` with an optional `quantity` from 1 to 200. Omitted means 1. The response is a list of the created pieces, each with its own id and the same weight, cost, photo, and `groupId`. Pieces from one save share that id. Send `groupId` to add more pieces to an existing batch. More than 200 answers `invalid_quantity`.
 - `GET /item/{id}`
 - `PUT /item/{id}`
 - `DELETE /item/{id}` marks the piece deleted. The row stays. List, get, update, sale, and return leave it out.

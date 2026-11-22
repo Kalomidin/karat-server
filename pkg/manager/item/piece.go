@@ -70,6 +70,10 @@ func applyEdit(item *repository.Item, in Input) error {
 	if in.ImageKey != nil {
 		item.ImageKey = strings.TrimSpace(*in.ImageKey)
 	}
+	if item.GroupID == nil && in.GroupID != uuid.Nil {
+		batch := in.GroupID
+		item.GroupID = &batch
+	}
 	return nil
 }
 
@@ -148,6 +152,9 @@ func toItem(item *repository.Item) *Item {
 		Notes:       item.Notes,
 		ImageKey:    item.ImageKey,
 		CreatedOn:   timestampString(item.CreatedOn),
+	}
+	if item.GroupID != nil && *item.GroupID != uuid.Nil {
+		out.GroupID = item.GroupID.String()
 	}
 	if item.SoldOn != nil {
 		soldOn := timestampString(*item.SoldOn)

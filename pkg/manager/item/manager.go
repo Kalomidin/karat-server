@@ -69,10 +69,15 @@ func (m *itemManager) Create(ctx context.Context, userID uuid.UUID, in Input) ([
 	if in.CreatedOn.IsZero() || in.CreatedOn.After(m.now().UTC()) {
 		return nil, common.ErrInvalidDate
 	}
+	groupID := in.GroupID
+	if groupID == uuid.Nil {
+		groupID = uuid.New()
+	}
 	var stored []repository.Item
 	err = m.repository.WithinTransaction(ctx, func(repo repository.Repository) error {
 		stored = make([]repository.Item, 0, in.Quantity)
 		for range in.Quantity {
+			batch := groupID
 			item := repository.Item{
 				UserID:      userID,
 				Name:        normalized.Name,
@@ -83,6 +88,7 @@ func (m *itemManager) Create(ctx context.Context, userID uuid.UUID, in Input) ([
 				CurrencyID:  normalized.CurrencyID,
 				Cost:        int64(normalized.Cost),
 				Notes:       normalized.Notes,
+				GroupID:     &batch,
 				CreatedOn:   in.CreatedOn.UTC(),
 			}
 			if normalized.ImageKey != nil {

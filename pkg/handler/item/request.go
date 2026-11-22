@@ -60,6 +60,13 @@ func (body itemRequest) input() (manager.Input, error) {
 		in.CreatedOn = created.UTC()
 	}
 	in.ImageKey = body.ImageKey
+	if body.GroupID != nil && strings.TrimSpace(*body.GroupID) != "" {
+		groupID, err := uuid.Parse(strings.TrimSpace(*body.GroupID))
+		if err != nil {
+			return manager.Input{}, common.ErrInvalidJSON
+		}
+		in.GroupID = groupID
+	}
 	in.Quantity = 1
 	if body.Quantity != nil {
 		in.Quantity = *body.Quantity

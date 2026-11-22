@@ -22,6 +22,7 @@ type Item struct {
 	Cost        int64      `gorm:"not null"`
 	Notes       string     `gorm:"not null;default:''"`
 	ImageKey    string     `gorm:"column:image_key;not null;default:''"`
+	GroupID     *uuid.UUID `gorm:"type:uuid;index"`
 	CreatedOn   time.Time  `gorm:"type:timestamptz;not null"`
 	SoldOn      *time.Time `gorm:"type:timestamptz"`
 	SoldAmount  *int64

@@ -32,6 +32,9 @@ func (r *repository) Migrate() error {
 	if err := utcTimestamps(r.DB, itemTable); err != nil {
 		return err
 	}
+	if err := addGroupID(r.DB, itemTable); err != nil {
+		return err
+	}
 	if err := dropMetalCatalog(r.DB, itemTable); err != nil {
 		return err
 	}
@@ -40,6 +43,13 @@ func (r *repository) Migrate() error {
 		return err
 	}
 	return addForeignKey(r.DB, itemTable, "item_currency_id_fkey", "currency_id", currencyTable)
+}
+
+func addGroupID(db *gorm.DB, table string) error {
+	return db.Exec(`
+ALTER TABLE ` + table + ` ADD COLUMN IF NOT EXISTS group_id uuid;
+CREATE INDEX IF NOT EXISTS idx_item_group_id ON ` + table + ` (group_id);
+`).Error
 }
 
 func dropMetalCatalog(db *gorm.DB, itemTable string) error {

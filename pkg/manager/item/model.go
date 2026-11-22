@@ -18,6 +18,7 @@ type Input struct {
 	ImageKey    *string
 	CreatedOn   time.Time
 	Quantity    int
+	GroupID     uuid.UUID
 }
 
 type Item struct {
@@ -33,6 +34,7 @@ type Item struct {
 	ImageKey    string  `json:"imageKey,omitempty"`
 	ImageURL    string  `json:"imageUrl,omitempty"`
 	CreatedOn   string  `json:"createdOn"`
+	GroupID     string  `json:"groupId,omitempty"`
 	SoldOn      *string `json:"soldOn"`
 	SoldAmount  *int    `json:"soldAmount"`
 }
