@@ -1,0 +1,56 @@
+package item_handler
+
+import (
+	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+
+	"karat-server/common"
+	manager "karat-server/pkg/manager/item"
+)
+
+func readItem(ctx *gin.Context) (itemRequest, error) {
+	var body itemRequest
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		return itemRequest{}, common.ErrInvalidJSON
+	}
+	switch {
+	case body.Name == nil:
+		return itemRequest{}, common.ErrInvalidName
+	case body.Kind == nil:
+		return itemRequest{}, common.ErrInvalidKind
+	case body.Metal == nil:
+		return itemRequest{}, common.ErrInvalidMetal
+	case body.Purity == nil:
+		return itemRequest{}, common.ErrInvalidPurity
+	case body.WeightGrams == nil:
+		return itemRequest{}, common.ErrInvalidWeight
+	case body.CurrencyID == nil:
+		return itemRequest{}, common.ErrInvalidCurrency
+	case body.Cost == nil:
+		return itemRequest{}, common.ErrInvalidCost
+	}
+	return body, nil
+}
+
+func (body itemRequest) input() (manager.Input, error) {
+	currencyID, err := uuid.Parse(strings.TrimSpace(*body.CurrencyID))
+	if err != nil {
+		return manager.Input{}, common.ErrInvalidCurrency
+	}
+	in := manager.Input{
+		Name:        *body.Name,
+		Kind:        *body.Kind,
+		Metal:       *body.Metal,
+		Purity:      *body.Purity,
+		WeightGrams: *body.WeightGrams,
+		CurrencyID:  currencyID,
+		Cost:        *body.Cost,
+	}
+	if body.Notes != nil {
+		in.Notes = *body.Notes
+	}
+	in.ImageKey = body.ImageKey
+	return in, nil
+}

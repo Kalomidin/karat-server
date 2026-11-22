@@ -1,0 +1,24 @@
+server:
+  port: 8080
+config:
+  google:
+    audiences: "942973487076-75esdqolvo0ropi4hjq23rcr8mvdnu3b.apps.googleusercontent.com,942973487076-8f5enjqlaclf3qs4526o75qbg4hhj4nf.apps.googleusercontent.com"
+    devLogin: false
+  shop:
+    timezone: UTC
+  r2:
+    bucket: ""
+    accountId: ""
+    accessKeyId: ""
+    accessKeySecret: ""
+    env: local
+  db:
+    host: localhost
+    port: "5432"
+    database: karat
+    username: karat
+    password: karat
+    sslMode: disable
+    schema: karat
+    maxConns: 10
+    waitForConn: 5s

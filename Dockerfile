@@ -7,7 +7,9 @@ RUN CGO_ENABLED=0 go build -o /out/karat-server ./cmd/karat-server
 
 FROM alpine:3.21
 RUN apk add --no-cache ca-certificates tzdata
-COPY --from=build /out/karat-server /usr/local/bin/karat-server
+WORKDIR /app
+COPY --from=build /out/karat-server /app/karat-server
+COPY configs /app/configs
 USER nobody
 EXPOSE 8080
-ENTRYPOINT ["karat-server"]
+ENTRYPOINT ["/app/karat-server"]

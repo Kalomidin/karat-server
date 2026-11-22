@@ -1,0 +1,29 @@
+package item_handler
+
+type itemRequest struct {
+	Name        *string  `json:"name"`
+	Kind        *string  `json:"kind"`
+	Metal       *string  `json:"metal"`
+	Purity      *string  `json:"purity"`
+	WeightGrams *float64 `json:"weightGrams"`
+	CurrencyID  *string  `json:"currencyId"`
+	Cost        *int     `json:"cost"`
+	Notes       *string  `json:"notes"`
+	ImageKey    *string  `json:"imageKey"`
+}
+
+type uploadRequest struct {
+	ContentType string `json:"contentType"`
+}
+
+type uploadResponse struct {
+	UploadURL   string `json:"uploadUrl"`
+	ImageKey    string `json:"imageKey"`
+	ReadURL     string `json:"readUrl"`
+	ContentType string `json:"contentType"`
+}
+
+type saleRequest struct {
+	SoldOn     *string `json:"soldOn"`
+	SoldAmount *int    `json:"soldAmount"`
+}
