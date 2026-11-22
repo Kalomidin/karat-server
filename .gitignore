@@ -1,0 +1,6 @@
+.env
+/karat-server
+/bin/
+*.exe
+*.test
+*.out
